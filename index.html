@@ -1,17 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
   <title>Happy Birthday!</title>
   <style>
+    :root {
+      --pink-100: #ffe6f0;
+      --pink-200: #fff0f5;
+      --pink-300: #ffb6c1;
+      --pink-400: #ff99aa;
+      --text-900: #333;
+      --text-800: #444;
+      --accent: #d63384;
+      --white: #ffffff;
+    }
+
+    /* Base */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #ffecd2, #fcb69f);
-      color: #333;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--pink-200);
+      color: var(--text-900);
       text-align: center;
       scroll-behavior: smooth;
+      overflow-x: hidden;
     }
 
     section {
@@ -21,116 +41,486 @@
       align-items: center;
       flex-direction: column;
       padding: 20px;
+      position: relative;
     }
 
     h1 {
       font-size: 3em;
       margin: 0.5em 0;
+      color: var(--accent);
     }
 
     p {
       font-size: 1.5em;
+      color: var(--text-800);
+      max-width: 800px;
     }
 
-    /* Present box */
+    /* Present as an accessible button */
     .present {
       width: 150px;
       height: 150px;
-      background: #ff6b6b;
+      background: var(--pink-300);
       position: relative;
       border-radius: 10px;
       cursor: pointer;
-      transition: transform 0.3s;
+      transition: transform 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      border: 0;
+      padding: 0;
+      display: inline-block;
     }
 
     .present:hover {
       transform: scale(1.1);
     }
 
+    .present:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .present:disabled,
+    .present[aria-disabled="true"] {
+      cursor: default;
+      opacity: 0.95;
+      transform: none !important;
+    }
+
     /* Ribbon */
-    .present::before, .present::after {
+    .present::before,
+    .present::after {
       content: "";
       position: absolute;
       background: #fff;
     }
+
     .present::before {
       top: 0;
       left: 50%;
       width: 20px;
       height: 100%;
       transform: translateX(-50%);
+      border-radius: 6px;
     }
+
     .present::after {
       top: 50%;
       left: 0;
       width: 100%;
       height: 20px;
       transform: translateY(-50%);
+      border-radius: 6px;
     }
 
-    /* Lid */
+    /* Lid with hinge effect */
     .lid {
       position: absolute;
       top: -30px;
       left: 0;
       width: 100%;
       height: 30px;
-      background: #ff4d4d;
+      background: var(--pink-400);
       border-radius: 10px 10px 0 0;
-      transition: transform 0.5s;
+      transition: transform 0.5s ease;
+      transform-origin: top center; /* Hinge effect */
     }
 
-    /* Hidden message */
+    /* Revealed message */
+    #message[hidden] {
+      display: none !important;
+    }
+
     #message {
-      display: none;
       font-size: 2em;
       margin-top: 20px;
-      color: #222;
-      animation: fadeIn 2s ease-in forwards;
+      color: var(--accent);
+      animation: fadeIn 0.8s ease-in forwards;
+      max-width: 600px;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Sakura petals */
+    .petal {
+      position: fixed;
+      top: -10vh;
+      background: #ffccd5;
+      border-radius: 50%;
+      opacity: 0.8;
+      pointer-events: none;
+      animation: fall linear infinite;
+      will-change: transform;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh) rotate(360deg);
+      }
+    }
+
+    /* Sound toggle button */
+    .sound-toggle {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: var(--white);
+      color: var(--text-900);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .sound-toggle:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .sound-toggle[aria-pressed="true"] .label-on { display: inline; }
+    .sound-toggle[aria-pressed="true"] .label-off { display: none; }
+    .sound-toggle[aria-pressed="false"] .label-on { display: none; }
+    .sound-toggle[aria-pressed="false"] .label-off { display: inline; }
+
+    /* Respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+      .present:hover {
+        transform: none !important;
+      }
+      .petal {
+        display: none !important;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Sound toggle (optional control) -->
+  <button
+    id="soundToggle"
+    class="sound-toggle"
+    type="button"
+    aria-pressed="true"
+    aria-label="Toggle celebration sound"
+    title="Toggle celebration sound"
+  >
+    <span class="icon" aria-hidden="true">🔊</span>
+    <span class="label-on">Sound on</span>
+    <span class="label-off">Sound off</span>
+  </button>
 
   <!-- Section 1 -->
-  <section style="background: #ffe0ac;">
-    <h1>🎉 Hey [Name] 🎂</h1>
-    <p>Scroll down… there’s something waiting for you 👇</p>
+  <section style="background: var(--pink-100);">
+    <h1>🌸 Hey <span id="name-1">Charry</span> 🌸</h1>
+    <p>Scroll down… something beautiful is waiting for you 🎁</p>
   </section>
 
   <!-- Section 2 -->
-  <section style="background: #ffd6d6;">
+  <section style="background: var(--pink-200);">
     <h1>🎁 Click the present!</h1>
-    <div class="present" onclick="openPresent()">
-      <div class="lid" id="lid"></div>
-    </div>
+    <button
+      class="present"
+      id="presentBtn"
+      type="button"
+      aria-label="Open birthday present"
+      aria-controls="message"
+      aria-expanded="false"
+    >
+      <span class="lid" id="lid" aria-hidden="true"></span>
+    </button>
   </section>
 
   <!-- Section 3 -->
-  <section style="background: #c8f7c5;">
-    <div id="message">
-      <h1>💌 Happy Birthday, [Name]!</h1>
-      <p>I wish you an amazing year filled with joy, health, and success.  
-      Thank you for being such a wonderful person 💖</p>
+  <section style="background: var(--pink-100);" id="message-section">
+    <div
+      id="message"
+      role="region"
+      aria-live="polite"
+      aria-atomic="true"
+      hidden
+      tabindex="-1"
+    >
+      <h1>💌 Happy Birthday, <span id="name-2">Charry</span>!</h1>
+      <p>
+        Just like cherry blossoms, may your year be filled with beauty, joy,
+        and moments that bloom into unforgettable memories 🌸💖
+      </p>
     </div>
   </section>
 
   <script>
-    function openPresent() {
-      const lid = document.getElementById('lid');
-      const message = document.getElementById('message');
-      lid.style.transform = "rotate(-30deg) translateY(-100px)";
-      setTimeout(() => {
-        message.style.display = "block";
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-      }, 600);
-    }
-  </script>
+    (function () {
+      const DEFAULT_NAME = "Charry";
+      const SOUND_PREF_KEY = "hb_sound_enabled";
 
+      // Utilities
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const isMobile = window.matchMedia("(max-width: 600px)").matches;
+
+      function getNameFromURL() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const name = params.get("name");
+          return name && name.trim() ? name.trim() : DEFAULT_NAME;
+        } catch {
+          return DEFAULT_NAME;
+        }
+      }
+
+      function setName(name) {
+        const n1 = document.getElementById("name-1");
+        const n2 = document.getElementById("name-2");
+        if (n1) n1.textContent = name;
+        if (n2) n2.textContent = name;
+      }
+
+      // Present interaction
+      const presentBtn = document.getElementById("presentBtn");
+      const lid = document.getElementById("lid");
+      const message = document.getElementById("message");
+
+      function openPresent() {
+        // Guard: only open once
+        if (presentBtn.disabled) return;
+
+        // Animate lid
+        lid.style.transform = "rotate(-30deg) translateY(-100px)";
+
+        // Disable further interaction
+        presentBtn.disabled = true;
+        presentBtn.setAttribute("aria-disabled", "true");
+        presentBtn.setAttribute("aria-expanded", "true");
+
+        // Play celebration sound (on user gesture)
+        playCelebration();
+
+        // Reveal message after lid animation
+        const delayMs = prefersReducedMotion ? 0 : 600;
+        window.setTimeout(() => {
+          message.hidden = false;
+
+          // Scroll into view (respect motion preference)
+          const behavior = prefersReducedMotion ? "auto" : "smooth";
+          message.scrollIntoView({ behavior, block: "start" });
+
+          // Move focus to message for screen readers
+          message.focus({ preventScroll: true });
+        }, delayMs);
+      }
+
+      if (presentBtn) {
+        presentBtn.addEventListener("click", openPresent, { once: false });
+      }
+
+      // Sakura petals generator with performance considerations
+      let petalIntervalId = null;
+      let currentPetals = 0;
+      const maxPetals = isMobile ? 40 : 80;
+      const baseInterval = isMobile ? 600 : 300;
+
+      function createPetal() {
+        if (currentPetals >= maxPetals) return;
+
+        const petal = document.createElement("div");
+        const size = Math.random() * 10 + 8; // 8px - 18px
+        petal.className = "petal";
+        petal.style.width = size + "px";
+        petal.style.height = size * 0.7 + "px";
+        petal.style.left = Math.random() * 100 + "vw";
+        petal.style.animationDuration = 5 + Math.random() * 5 + "s";
+        petal.style.animationDelay = Math.random() * 2 + "s";
+        petal.style.boxShadow = "0 0 4px rgba(0,0,0,0.05)";
+
+        document.body.appendChild(petal);
+        currentPetals++;
+
+        // Clean up after animation
+        window.setTimeout(() => {
+          petal.remove();
+          currentPetals--;
+        }, 11000);
+      }
+
+      function startPetals() {
+        if (prefersReducedMotion) return;
+        if (petalIntervalId != null) return; // Already running
+        petalIntervalId = window.setInterval(createPetal, baseInterval);
+      }
+
+      function stopPetals() {
+        if (petalIntervalId != null) {
+          window.clearInterval(petalIntervalId);
+          petalIntervalId = null;
+        }
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stopPetals();
+        } else {
+          startPetals();
+        }
+      });
+
+      // -------- Celebration Sound (Web Audio API) --------
+      let audioCtx = null;
+      let soundEnabled = true;
+      try {
+        const stored = localStorage.getItem(SOUND_PREF_KEY);
+        soundEnabled = stored === null ? true : stored === "true";
+      } catch {
+        soundEnabled = true;
+      }
+
+      function getAudioContext() {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        if (!audioCtx) audioCtx = new Ctx();
+        return audioCtx;
+      }
+
+      function playCelebration() {
+        if (!soundEnabled) return;
+
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        // Ensure context is running (some browsers create it suspended)
+        if (ctx.state === "suspended") {
+          ctx.resume().catch(() => {});
+        }
+
+        // Tada chord
+        playTada(ctx);
+
+        // Confetti noise burst
+        playConfetti(ctx);
+
+        // Sparkle arpeggio
+        playSparkle(ctx);
+
+        // Optional gentle vibration
+        if (navigator.vibrate) {
+          try { navigator.vibrate(60); } catch {}
+        }
+      }
+
+      function playTada(ctx) {
+        const now = ctx.currentTime;
+        const duration = 1.2;
+        const freqs = [261.63, 329.63, 392.00]; // C4, E4, G4
+        freqs.forEach((f, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = i === 0 ? "triangle" : "sine";
+          osc.frequency.value = f;
+          // Slight detune for richness
+          osc.detune.value = (i - 1) * 6;
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(0.6 / freqs.length, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(now + i * 0.02);
+          osc.stop(now + duration + 0.1);
+        });
+      }
+
+      function playConfetti(ctx) {
+        const now = ctx.currentTime;
+        const duration = 0.6;
+
+        // Create white noise buffer
+        const bufferSize = Math.floor(ctx.sampleRate * duration);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize); // quick fade out
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const hp = ctx.createBiquadFilter();
+        hp.type = "highpass";
+        hp.frequency.value = 800;
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.4, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        noise.connect(hp).connect(gain).connect(ctx.destination);
+        noise.start(now + 0.05);
+        noise.stop(now + duration + 0.1);
+      }
+
+      function playSparkle(ctx) {
+        const now = ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((f, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = "sine";
+          osc.frequency.value = f;
+
+          const t0 = now + 0.25 + i * 0.1;
+          gain.gain.setValueAtTime(0.0001, t0);
+          gain.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
+
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(t0);
+          osc.stop(t0 + 0.25);
+        });
+      }
+
+      // Sound toggle UI
+      const soundToggle = document.getElementById("soundToggle");
+      function updateSoundToggle() {
+        if (!soundToggle) return;
+        soundToggle.setAttribute("aria-pressed", String(soundEnabled));
+        soundToggle.querySelector(".icon").textContent = soundEnabled ? "🔊" : "🔇";
+      }
+      if (soundToggle) {
+        updateSoundToggle();
+        soundToggle.addEventListener("click", () => {
+          soundEnabled = !soundEnabled;
+          updateSoundToggle();
+          try { localStorage.setItem(SOUND_PREF_KEY, String(soundEnabled)); } catch {}
+          if (soundEnabled) {
+            // Prime/resume the audio context on user gesture so future sounds play reliably
+            const ctx = getAudioContext();
+            if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+          }
+        });
+      }
+
+      // Initialize
+      setName(getNameFromURL());
+      if (!prefersReducedMotion) startPetals();
+    })();
+  </script>
 </body>
 </html>
