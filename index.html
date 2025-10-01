@@ -6,8 +6,9 @@
   <title>Ehehe</title>
   <style>
     :root {
-      --pink-100: #ffe6f0;
-      --pink-200: #fff0f5;
+      /* Make section backgrounds slightly translucent so the doodles peek through */
+      --pink-100: rgb(255 230 240 / 0); /* was #ffe6f0 */
+      --pink-200: rgb(255 240 245 / 0); /* was #fff0f5 */
       --pink-300: #ffb6c1;
       --pink-400: #ff99aa;
       --text-900: #333;
@@ -21,11 +22,66 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: var(--pink-200);
       color: var(--text-900);
       text-align: center;
       scroll-behavior: smooth;
       overflow-x: hidden;
+
+      /* Cute cherry blossom doodle wallpaper (WhatsApp-ish) */
+      background-color: var(--pink-200);
+      background-image:
+        radial-gradient(120% 100% at 0% 0%, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%),
+        radial-gradient(120% 100% at 100% 100%, rgba(255,255,255,0.5), rgba(255,255,255,0) 60%),
+        radial-gradient(circle at 25px 25px, rgba(214, 51, 132, 0.06) 2px, transparent 2.2px),
+        radial-gradient(circle at 55px 55px, rgba(214, 51, 132, 0.04) 2px, transparent 2.2px),
+        url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'>\
+  <rect width='220' height='220' fill='none'/>\
+  <g fill='none' stroke='%23e58ca8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' opacity='0.22'>\
+    <!-- blossom-ish doodle -->\
+    <path d='M38 46c8-10 18-10 26 0 2 3 2 7 0 10-8 10-18 10-26 0-2-3-2-7 0-10z'/>\
+    <!-- small flower -->\
+    <path d='M160 36c6 4 8 12 4 18-4 6-12 8-18 4-6-4-8-12-4-18 4-6 12-8 18-4z'/>\
+    <!-- heart -->\
+    <path d='M62 156c8-8 22-6 26 5 4-11 18-13 26-5 10 10-6 26-26 38-20-12-36-28-26-38z'/>\
+    <!-- bow -->\
+    <path d='M176 146c8-6 20-6 28 0-8 6-20 6-28 0zm0 0c-2 6-2 12 0 18m28-18c2 6 2 12 0 18'/>\
+    <!-- sparkles/dots -->\
+    <path d='M112 104h6M115 101v6M92 122h4M94 120v4'/>\
+    <circle cx='196' cy='92' r='2'/>\
+    <circle cx='24' cy='110' r='1.6'/>\
+  </g>\
+</svg>");
+      background-size:
+        100% 100%,
+        100% 100%,
+        80px 80px,
+        80px 80px,
+        220px 220px;
+      background-position:
+        0 0,
+        0 0,
+        0 0,
+        40px 40px,
+        0 0;
+      background-attachment:
+        fixed,
+        fixed,
+        fixed,
+        fixed,
+        fixed;
+    }
+
+    /* Improve performance on small screens: avoid fixed backgrounds */
+    @media (max-width: 600px) {
+      body {
+        background-attachment:
+          scroll,
+          scroll,
+          scroll,
+          scroll,
+          scroll;
+      }
     }
 
     section {
@@ -431,7 +487,7 @@
         window.setTimeout(() => emitEmojis({ count: isMobile ? 20 : 28, spread: isMobile ? 160 : 220 }), 180);
         window.setTimeout(() => emitEmojis({ count: isMobile ? 16 : 22, spread: isMobile ? 170 : 230 }), 380);
 
-        const delayMs = prefersReducedMotion ? 0 : 2500;
+        const delayMs = prefersReducedMotion ? 0 : 2400;
         window.setTimeout(() => {
           message.hidden = false;
           const behavior = prefersReducedMotion ? "auto" : "smooth";
