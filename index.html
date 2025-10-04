@@ -46,49 +46,24 @@
     .wrap { max-width:960px; margin:40px auto; padding:24px 24px 48px; }
 
     header { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
-    
+
     .avatar {
-      width:88px;
-      height:88px;
-      border-radius:22px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:48px;
-      font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+      width:88px; height:88px; border-radius:22px; display:flex; align-items:center; justify-content:center;
+      font-size:48px; font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
       background:
         radial-gradient(circle at 35% 30%, rgba(130,210,255,0.15), transparent 65%),
         linear-gradient(160deg, #132a33, #102129 60%, #0f1e25);
-      box-shadow:
-        0 3px 8px -1px rgba(0,0,0,0.55),
-        0 0 0 1px rgba(255,255,255,0.05);
-      position:relative;
-      isolation:isolate;
-      user-select:none;
-      -webkit-tap-highlight-color:transparent;
-      line-height:1;
+      box-shadow:0 3px 8px -1px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.05);
+      position:relative; isolation:isolate; user-select:none; -webkit-tap-highlight-color:transparent; line-height:1;
     }
     .avatar::after {
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:inherit;
-      background:
-        linear-gradient(115deg, rgba(255,200,87,0.22), rgba(255,200,87,0) 70%);
-      pointer-events:none;
-      mix-blend-mode:overlay;
-      opacity:.9;
+      content:""; position:absolute; inset:0; border-radius:inherit;
+      background:linear-gradient(115deg, rgba(255,200,87,0.22), rgba(255,200,87,0) 70%);
+      pointer-events:none; mix-blend-mode:overlay; opacity:.9;
     }
     @media (prefers-reduced-motion: no-preference) {
-      .avatar {
-        transition:transform .25s ease, box-shadow .25s ease;
-      }
-      .avatar:hover {
-        transform:translateY(-2px);
-        box-shadow:
-          0 6px 16px -3px rgba(0,0,0,0.6),
-          0 0 0 1px rgba(255,255,255,0.07);
-      }
+      .avatar { transition:transform .25s ease, box-shadow .25s ease; }
+      .avatar:hover { transform:translateY(-2px); box-shadow:0 6px 16px -3px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07); }
     }
 
     h1 { margin:0 0 4px; font-size:2.15rem; line-height:1.15; }
@@ -97,41 +72,23 @@
     main { display:block; }
 
     .card {
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:20px 20px 22px;
-      margin-top:22px;
-      box-shadow:var(--shadow);
-      position:relative;
+      background:var(--card); border-radius:var(--radius); padding:20px 20px 22px; margin-top:22px;
+      box-shadow:var(--shadow); position:relative;
     }
     .intro { line-height:1.6; }
 
     .hobbies { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
     .tab-btn {
-      padding:10px 16px;
-      border-radius:12px;
-      background:var(--card-alt);
-      border:1px solid #2d3a48;
-      cursor:pointer;
-      font:inherit;
-      color:var(--text);
-      box-shadow:0 4px 10px rgba(0,0,0,0.35);
-      transition:background .16s ease, transform .12s ease, border .16s ease;
+      padding:10px 16px; border-radius:12px; background:var(--card-alt); border:1px solid #2d3a48; cursor:pointer;
+      font:inherit; color:var(--text); box-shadow:0 4px 10px rgba(0,0,0,0.35); transition:background .16s, transform .12s, border .16s;
     }
     .tab-btn:hover { background:#2a3745; transform:translateY(-2px); }
     .tab-btn[aria-selected="true"] {
       background:linear-gradient(180deg,var(--accent),var(--accent-dark));
-      color:#18222c;
-      font-weight:600;
-      border:1px solid #ffe4a6;
-      text-shadow:0 1px 0 rgba(255,255,255,0.25);
+      color:#18222c; font-weight:600; border:1px solid #ffe4a6; text-shadow:0 1px 0 rgba(255,255,255,0.25);
     }
     .panel {
-      margin-top:14px;
-      padding:14px 16px 16px;
-      border-radius:12px;
-      background:var(--panel-bg);
-      border:1px solid var(--panel-border);
+      margin-top:14px; padding:14px 16px 16px; border-radius:12px; background:var(--panel-bg); border:1px solid var(--panel-border);
     }
     .panel h4 { margin:0 0 8px; font-size:1rem; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase; }
     .panel p { margin:4px 0 10px; font-size:0.9rem; color:var(--muted); }
@@ -139,29 +96,17 @@
     .hobby-list li { margin:2px 0; }
 
     .ms-wrapper {
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      align-items:center; /* centered horizontally */
-      text-align:center;  /* center text (instructions, status) */
+      display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center;
     }
     .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center; }
     .audio-controls { display:flex; gap:8px; flex-wrap:wrap; }
     .small { font-size:0.85rem; color:var(--muted); }
 
     .board {
-      display:grid;
-      grid-template-columns:repeat(10,34px);
-      grid-auto-rows:34px;
-      gap:4px;
-      background:#1a242e;
-      padding:8px;
-      border-radius:10px;
+      display:grid; grid-template-columns:repeat(10,34px); grid-auto-rows:34px; gap:4px;
+      background:#1a242e; padding:8px; border-radius:10px;
       box-shadow:inset 0 0 0 1px #273543, 0 0 0 1px #10161d;
-      user-select:none;
-      touch-action:manipulation;
-      position:relative;
-      margin:0 auto; /* ensure centering if container rules change */
+      user-select:none; touch-action:manipulation; position:relative; margin:0 auto;
     }
     .board.won { animation:boardGlow 1.6s ease-out 1; }
     @keyframes boardGlow {
@@ -171,19 +116,9 @@
     }
 
     .cell {
-      width:34px; height:34px;
-      border-radius:6px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:var(--cell);
-      border:1px solid var(--cell-border);
-      font-weight:700;
-      font-size:15px;
-      cursor:pointer;
-      transition:background .12s ease, border-color .12s ease;
-      line-height:1;
-      -webkit-tap-highlight-color: transparent;
+      width:34px; height:34px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+      background:var(--cell); border:1px solid var(--cell-border); font-weight:700; font-size:15px; cursor:pointer;
+      transition:background .12s, border-color .12s; line-height:1; -webkit-tap-highlight-color: transparent;
     }
     .cell:hover { background:var(--cell-hover); }
     .cell.revealed { background:var(--cell-revealed); border-color:var(--cell-revealed-border); cursor:default; }
@@ -207,25 +142,14 @@
     .number-8 { color:#cccccc; }
 
     button.reset-btn, button.audio-btn {
-      padding:8px 14px;
-      background:var(--card-alt);
-      border:1px solid #314154;
-      border-radius:10px;
-      color:var(--text);
-      cursor:pointer;
-      font:inherit;
-      transition:background .15s ease, transform .1s ease;
+      padding:8px 14px; background:var(--card-alt); border:1px solid #314154; border-radius:10px;
+      color:var(--text); cursor:pointer; font:inherit; transition:background .15s ease, transform .1s ease;
     }
-    button.reset-btn:hover,
-    button.audio-btn:hover { background:#2d3b4a; }
-    button.reset-btn:active,
-    button.audio-btn:active { transform:translateY(1px); }
+    button.reset-btn:hover, button.audio-btn:hover { background:#2d3b4a; }
+    button.reset-btn:active, button.audio-btn:active { transform:translateY(1px); }
     button.audio-btn[aria-pressed="true"] {
       background:linear-gradient(180deg,var(--accent),var(--accent-dark));
-      color:#18222c;
-      border-color:#ffe4a6;
-      font-weight:600;
-      text-shadow:0 1px 0 rgba(255,255,255,0.25);
+      color:#18222c; border-color:#ffe4a6; font-weight:600; text-shadow:0 1px 0 rgba(255,255,255,0.25);
     }
 
     #ms-status[role="status"] { min-height:1.1em; }
@@ -258,7 +182,7 @@
 
         <div role="tablist" aria-label="Hobby tabs" class="hobbies" id="hobby-tablist">
           <button role="tab" id="tab-gaming" class="tab-btn" aria-selected="true" aria-controls="panel-hobby" data-hobby="gaming">Games</button>
-          <button role="tab" id="tab-music" class="tab-btn" aria-selected="false" aria-controls="panel-hobby" data-hobby="music">Music</button>
+            <button role="tab" id="tab-music" class="tab-btn" aria-selected="false" aria-controls="panel-hobby" data-hobby="music">Music</button>
           <button role="tab" id="tab-misc" class="tab-btn" aria-selected="false" aria-controls="panel-hobby" data-hobby="misc">Misc</button>
         </div>
 
@@ -294,7 +218,7 @@
             Click a revealed number (when flags match it) to auto-clear neighbors.
           </p>
           <div id="board" class="board" aria-label="Minesweeper board (mouse & touch)"></div>
-            <div id="ms-status" class="small" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div id="ms-status" class="small" role="status" aria-live="polite" aria-atomic="true"></div>
         </div>
       </section>
     </main>
@@ -510,7 +434,7 @@
         let placed=0;
         while(placed<CONFIG.MINES){
           const r=Math.floor(Math.random()*CONFIG.ROWS);
-          const c=Math.floor(Math.random()*CONFIG.COLS);
+            const c=Math.floor(Math.random()*CONFIG.COLS);
           const i=idx(r,c);
           if (grid[i].mine || excludeSet.has(i)) continue;
           grid[i].mine=true; placed++;
@@ -526,6 +450,9 @@
         }
       }
 
+      /* Touch vs mouse context handling flags */
+      let isTouchEnv = false;
+
       function makeBoardElements(){
         boardEl.innerHTML='';
         cells=[];
@@ -534,31 +461,52 @@
           cell.className='cell';
           cell.dataset.i=i;
 
+          // Prevent click after long press from acting
+          let suppressClick = false;
+          let longPressActive = false;
+          let touchTimer = null;
+
           cell.addEventListener('click', ()=>{
+            if (suppressClick) { suppressClick = false; return; }
             if (gameOver) return;
             const state=grid[i];
             if (state.revealed && state.count>0) chord(i);
             else revealCell(i);
           });
+
           cell.addEventListener('contextmenu', e=>{
             e.preventDefault();
+            // Skip contextmenu toggling on touch environments to avoid double toggle
+            if (isTouchEnv) return;
             if(!gameOver) toggleFlag(i);
           });
 
-          // Touch long‑press
-          let touchTimer=null;
-          let long=false;
+          // Touch long‑press handling
           cell.addEventListener('touchstart', e=>{
-            if(gameOver|| e.touches.length>1) return;
-            long=false;
-            touchTimer=setTimeout(()=>{
-              long=true;
+            if (gameOver || e.touches.length>1) return;
+            isTouchEnv = true;
+            longPressActive = false;
+            touchTimer = setTimeout(()=>{
+              longPressActive = true;
               toggleFlag(i);
-            },350);
+              suppressClick = true; // prevent subsequent synthetic click
+            }, 350);
           }, {passive:true});
+
           cell.addEventListener('touchend', ()=>{
-            if(touchTimer){ clearTimeout(touchTimer); touchTimer=null; }
-            if(!gameOver && !long) revealCell(i);
+            if (touchTimer){ clearTimeout(touchTimer); touchTimer=null; }
+            if (gameOver) return;
+            if (!longPressActive){
+              // short tap -> reveal
+              revealCell(i);
+            } else {
+              // allow next click to be ignored only once
+              setTimeout(()=>{ suppressClick=false; }, 50);
+            }
+          });
+
+          cell.addEventListener('touchcancel', ()=>{
+            if (touchTimer){ clearTimeout(touchTimer); touchTimer=null; }
           });
 
           boardEl.appendChild(cell);
@@ -602,14 +550,14 @@
         cell.revealed=true;
 
         if (cell.mine){
-            gameOver=true;
-            msStatus.textContent='Game over';
-            msStatus.classList.add('status-lose');
-            updateCell(i);
-            revealAllMines(i);
-            markWrongFlags();
-            Audio.playSFX('lose');
-            return;
+          gameOver=true;
+          msStatus.textContent='Game over';
+          msStatus.classList.add('status-lose');
+          updateCell(i);
+          revealAllMines(i);
+          markWrongFlags();
+          Audio.playSFX('lose');
+          return;
         }
 
         const changed=new Set([i]);
