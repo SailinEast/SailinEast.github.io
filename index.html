@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>My Page</title>
-  <meta name="description" content="My cozy personal page with hobbies, a short intro, and a custom Minesweeper implementation." />
+  <meta name="description" content="My cozy personal page with hobbies, intro and Minesweeper." />
   <meta name="color-scheme" content="dark light">
   <style>
     :root {
@@ -46,8 +46,7 @@
     .wrap { max-width:960px; margin:40px auto; padding:24px 24px 48px; }
 
     header { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
-
-    /* Avatar Option C (Soft Teal Mist) with subtle yellow accent overlay */
+    
     .avatar {
       width:88px;
       height:88px;
@@ -139,8 +138,14 @@
     .hobby-list { margin:0; padding-left:20px; line-height:1.5; }
     .hobby-list li { margin:2px 0; }
 
-    .ms-wrapper { display:flex; flex-direction:column; gap:14px; align-items:flex-start; }
-    .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .ms-wrapper {
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      align-items:center; /* centered horizontally */
+      text-align:center;  /* center text (instructions, status) */
+    }
+    .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center; }
     .audio-controls { display:flex; gap:8px; flex-wrap:wrap; }
     .small { font-size:0.85rem; color:var(--muted); }
 
@@ -156,6 +161,7 @@
       user-select:none;
       touch-action:manipulation;
       position:relative;
+      margin:0 auto; /* ensure centering if container rules change */
     }
     .board.won { animation:boardGlow 1.6s ease-out 1; }
     @keyframes boardGlow {
@@ -288,7 +294,7 @@
             Click a revealed number (when flags match it) to auto-clear neighbors.
           </p>
           <div id="board" class="board" aria-label="Minesweeper board (mouse & touch)"></div>
-          <div id="ms-status" class="small" role="status" aria-live="polite" aria-atomic="true"></div>
+            <div id="ms-status" class="small" role="status" aria-live="polite" aria-atomic="true"></div>
         </div>
       </section>
     </main>
