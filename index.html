@@ -1,12 +1,742 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Page</title>
+  <meta name="description" content="My cozy personal page with hobbies, a short intro, and a custom Minesweeper implementation." />
+  <meta name="color-scheme" content="dark light">
+  <style>
+    :root {
+      --bg:#0e1116;
+      --card:#1b2330;
+      --card-alt:#232f3d;
+      --muted:#9ba7b4;
+      --text:#f2f5f8;
+      --accent:#ffc857;
+      --accent-dark:#e0ad24;
+      --accent-mid:#ffd891;
+      --danger:#ff6262;
+      --radius:14px;
+      --shadow:0 6px 18px rgba(0,0,0,0.55);
+      --cell:#253041;
+      --cell-border:#324153;
+      --cell-hover:#2e3c4c;
+      --cell-revealed:#1f2933;
+      --cell-revealed-border:#334455;
+      --cell-mine:#4a1f24;
+      --cell-flag:#ffcc66;
+      --panel-bg:#18222c;
+      --panel-border:#273543;
+      --focus:#94c6ff;
+      --wrong-flag-bg:#40222a;
+      --wrong-flag-color:#ff9494;
+      --win-glow:rgba(255,200,87,0.35);
+    }
+    * { box-sizing:border-box }
+    body {
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+    }
+    a { color:var(--accent); }
+
+    .wrap { max-width:960px; margin:40px auto; padding:24px 24px 48px; }
+
+    header { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+
+    /* Avatar Option C (Soft Teal Mist) with subtle yellow accent overlay */
+    .avatar {
+      width:88px;
+      height:88px;
+      border-radius:22px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:48px;
+      font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(130,210,255,0.15), transparent 65%),
+        linear-gradient(160deg, #132a33, #102129 60%, #0f1e25);
+      box-shadow:
+        0 3px 8px -1px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(255,255,255,0.05);
+      position:relative;
+      isolation:isolate;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      line-height:1;
+    }
+    .avatar::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      background:
+        linear-gradient(115deg, rgba(255,200,87,0.22), rgba(255,200,87,0) 70%);
+      pointer-events:none;
+      mix-blend-mode:overlay;
+      opacity:.9;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .avatar {
+        transition:transform .25s ease, box-shadow .25s ease;
+      }
+      .avatar:hover {
+        transform:translateY(-2px);
+        box-shadow:
+          0 6px 16px -3px rgba(0,0,0,0.6),
+          0 0 0 1px rgba(255,255,255,0.07);
+      }
+    }
+
+    h1 { margin:0 0 4px; font-size:2.15rem; line-height:1.15; }
+    p.tag { margin:0; color:var(--muted); font-size:1rem; }
+
+    main { display:block; }
+
+    .card {
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:20px 20px 22px;
+      margin-top:22px;
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+    .intro { line-height:1.6; }
+
+    .hobbies { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    .tab-btn {
+      padding:10px 16px;
+      border-radius:12px;
+      background:var(--card-alt);
+      border:1px solid #2d3a48;
+      cursor:pointer;
+      font:inherit;
+      color:var(--text);
+      box-shadow:0 4px 10px rgba(0,0,0,0.35);
+      transition:background .16s ease, transform .12s ease, border .16s ease;
+    }
+    .tab-btn:hover { background:#2a3745; transform:translateY(-2px); }
+    .tab-btn[aria-selected="true"] {
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+      color:#18222c;
+      font-weight:600;
+      border:1px solid #ffe4a6;
+      text-shadow:0 1px 0 rgba(255,255,255,0.25);
+    }
+    .panel {
+      margin-top:14px;
+      padding:14px 16px 16px;
+      border-radius:12px;
+      background:var(--panel-bg);
+      border:1px solid var(--panel-border);
+    }
+    .panel h4 { margin:0 0 8px; font-size:1rem; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase; }
+    .panel p { margin:4px 0 10px; font-size:0.9rem; color:var(--muted); }
+    .hobby-list { margin:0; padding-left:20px; line-height:1.5; }
+    .hobby-list li { margin:2px 0; }
+
+    .ms-wrapper { display:flex; flex-direction:column; gap:14px; align-items:flex-start; }
+    .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .audio-controls { display:flex; gap:8px; flex-wrap:wrap; }
+    .small { font-size:0.85rem; color:var(--muted); }
+
+    .board {
+      display:grid;
+      grid-template-columns:repeat(10,34px);
+      grid-auto-rows:34px;
+      gap:4px;
+      background:#1a242e;
+      padding:8px;
+      border-radius:10px;
+      box-shadow:inset 0 0 0 1px #273543, 0 0 0 1px #10161d;
+      user-select:none;
+      touch-action:manipulation;
+      position:relative;
+    }
+    .board.won { animation:boardGlow 1.6s ease-out 1; }
+    @keyframes boardGlow {
+      0% { box-shadow:0 0 0 0 var(--win-glow), inset 0 0 0 1px #273543, 0 0 0 1px #10161d; }
+      50% { box-shadow:0 0 18px 6px var(--win-glow), inset 0 0 0 1px #273543, 0 0 0 1px #10161d; }
+      100% { box-shadow:0 0 0 0 var(--win-glow), inset 0 0 0 1px #273543, 0 0 0 1px #10161d; }
+    }
+
+    .cell {
+      width:34px; height:34px;
+      border-radius:6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--cell);
+      border:1px solid var(--cell-border);
+      font-weight:700;
+      font-size:15px;
+      cursor:pointer;
+      transition:background .12s ease, border-color .12s ease;
+      line-height:1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cell:hover { background:var(--cell-hover); }
+    .cell.revealed { background:var(--cell-revealed); border-color:var(--cell-revealed-border); cursor:default; }
+    .cell.mine.revealed { background:var(--cell-mine); }
+    .cell.flagged:not(.revealed) { color:var(--cell-flag); }
+    .cell.failed { animation:flash 0.8s ease-in-out 1; }
+    .cell.wrong-flag { background:var(--wrong-flag-bg); color:var(--wrong-flag-color); font-size:16px; }
+    @keyframes flash {
+      0% { box-shadow:0 0 0 0 rgba(255,98,98,0.0); }
+      40% { box-shadow:0 0 0 6px rgba(255,98,98,0.35); }
+      100% { box-shadow:0 0 0 0 rgba(255,98,98,0.0); }
+    }
+
+    .number-1 { color:#6aa9ff; }
+    .number-2 { color:#5ecb89; }
+    .number-3 { color:#ffb477; }
+    .number-4 { color:#d4b5ff; }
+    .number-5 { color:#ff9fd0; }
+    .number-6 { color:#66e0da; }
+    .number-7 { color:#ffd666; }
+    .number-8 { color:#cccccc; }
+
+    button.reset-btn, button.audio-btn {
+      padding:8px 14px;
+      background:var(--card-alt);
+      border:1px solid #314154;
+      border-radius:10px;
+      color:var(--text);
+      cursor:pointer;
+      font:inherit;
+      transition:background .15s ease, transform .1s ease;
+    }
+    button.reset-btn:hover,
+    button.audio-btn:hover { background:#2d3b4a; }
+    button.reset-btn:active,
+    button.audio-btn:active { transform:translateY(1px); }
+    button.audio-btn[aria-pressed="true"] {
+      background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+      color:#18222c;
+      border-color:#ffe4a6;
+      font-weight:600;
+      text-shadow:0 1px 0 rgba(255,255,255,0.25);
+    }
+
+    #ms-status[role="status"] { min-height:1.1em; }
+    .status-win { color:#ffd257; font-weight:600; }
+    .status-lose { color:var(--danger); font-weight:600; }
+
+    footer { margin-top:32px; text-align:center; color:#9ba7b4; font-size:0.75rem; }
+
+    @media (max-width:620px) {
+      .board { grid-template-columns:repeat(10,30px); grid-auto-rows:30px; gap:3px; padding:6px; }
+      .cell { width:30px; height:30px; font-size:14px; }
+      .avatar { width:80px; height:80px; font-size:44px; }
+    }
+  </style>
 </head>
 <body>
-    <h1>Hello!</h1>
-    <p>Basically nothing here right now. Stay tuned I guess :P</p>
+  <div class="wrap">
+    <header>
+      <div class="avatar" aria-label="Sail">⛵</div>
+      <div>
+        <h1>Hey, I'm Sail</h1>
+        <p class="tag">Just a shy introverted nerd lol</p>
+      </div>
+    </header>
+
+    <main id="main-content" role="main">
+      <section class="card intro" aria-labelledby="hobby-heading">
+        <h2 id="hobby-heading" style="margin:0 0 10px;font-size:1.35rem;">Hobbies & Favorites</h2>
+        <p>I like playing and discovering video games, and I love rock music. Below are a few of my top picks for both, though it was hard to narrow it down just to 5.</p>
+
+        <div role="tablist" aria-label="Hobby tabs" class="hobbies" id="hobby-tablist">
+          <button role="tab" id="tab-gaming" class="tab-btn" aria-selected="true" aria-controls="panel-hobby" data-hobby="gaming">Games</button>
+          <button role="tab" id="tab-music" class="tab-btn" aria-selected="false" aria-controls="panel-hobby" data-hobby="music">Music</button>
+          <button role="tab" id="tab-misc" class="tab-btn" aria-selected="false" aria-controls="panel-hobby" data-hobby="misc">Misc</button>
+        </div>
+
+        <div id="panel-hobby" class="panel" role="tabpanel" tabindex="0" aria-labelledby="tab-gaming">
+          <h4 id="favorites-label">Favorites</h4>
+          <p id="hobby-instructions">Click a tab above to update the list.</p>
+          <ul id="hobby-list" class="hobby-list" aria-describedby="hobby-instructions"></ul>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="about-heading">
+        <h2 id="about-heading" style="margin:0 0 10px;font-size:1.25rem;">More about me</h2>
+        <p class="small">
+          As you've seen above, I am an introvert; well, at least that's who I think I am.
+          I don't really go out very much and sports aren't for me. I am just a small boy living his life and trying to pursue my dreams.
+          I really want to develop an indie game later on, hopefully will do that one day heh.
+          So yeah, I guess that's everything I wanted to say, thank you for visiting! Oh, and there's a game of Minesweeper below, feel free to play it :)
+        </p>
+      </section>
+
+      <section class="card" aria-labelledby="puzzle-heading">
+        <h2 id="puzzle-heading" style="margin:0 0 14px;font-size:1.25rem;">Minesweeper</h2>
+        <div class="ms-wrapper">
+          <div class="controls">
+            <div class="small" aria-live="polite">Mines left: <span id="mines-left">0</span></div>
+            <button id="reset" class="reset-btn">Reset</button>
+            <div class="audio-controls">
+              <button id="sfx-toggle" class="audio-btn" aria-pressed="true">SFX: on</button>
+            </div>
+          </div>
+          <p id="ms-instructions" class="small" style="margin:0;">
+            Left click to reveal (first click clears a safe area). Right click or long‑press (touch) to flag.
+            Click a revealed number (when flags match it) to auto-clear neighbors.
+          </p>
+          <div id="board" class="board" aria-label="Minesweeper board (mouse & touch)"></div>
+          <div id="ms-status" class="small" role="status" aria-live="polite" aria-atomic="true"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>© <span id="year"></span> Sail. Thanks for stopping by!</div>
+    </footer>
+  </div>
+
+  <script>
+    /* ---------- Hobby Tabs ---------- */
+    (function(){
+      const hobbyData = {
+        gaming: ['Hollow Knight','Kerbal Space Program','Minecraft','Subnautica','Kingdom Come: Deliverance'],
+        music: ['Entire KINO band','Subways Of Your Mind - FEX','Smells Like Teen Spirit - Nirvana','Supernaut - Black Sabbath','Radetzky March - Johann Strauss I'],
+        misc: ['Tea, a lotta tea','Stargazing','Maths (minus trigonometry)','Coding tasks','Discovering new things']
+      };
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+      const hobbyList = document.getElementById('hobby-list');
+      const panel = document.getElementById('panel-hobby');
+
+      function renderHobby(key) {
+        hobbyList.innerHTML = '';
+        hobbyData[key].forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          hobbyList.appendChild(li);
+        });
+      }
+      function activateTab(newTab) {
+        tabs.forEach(tab => {
+          const selected = tab === newTab;
+          tab.setAttribute('aria-selected', selected);
+          tab.tabIndex = selected ? 0 : -1;
+          if (selected) {
+            panel.setAttribute('aria-labelledby', tab.id);
+            renderHobby(tab.dataset.hobby);
+          }
+        });
+      }
+      tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab)));
+      renderHobby('gaming');
+    })();
+
+    /* ---------- Audio (SFX Only) ---------- */
+    const AudioModule = (function(){
+      let audioInited = false;
+      let actx, masterGain, sfxGain, highShelf;
+      let sfxEnabled = true;
+
+      function loadPrefs(){
+        try {
+          const p = localStorage.getItem('ms_sfx');
+          if (p !== null) sfxEnabled = p === '1';
+        } catch(_){}
+        const btn = document.getElementById('sfx-toggle');
+        btn.setAttribute('aria-pressed', sfxEnabled);
+        btn.textContent = 'SFX: ' + (sfxEnabled ? 'on':'off');
+      }
+
+      function initAudio(){
+        if (audioInited) return;
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = actx.createGain();
+        masterGain.gain.value = 0.9;
+
+        highShelf = actx.createBiquadFilter();
+        highShelf.type = 'highshelf';
+        highShelf.frequency.value = 1600;
+        highShelf.gain.value = -3;
+
+        sfxGain = actx.createGain();
+        sfxGain.gain.value = 0.9;
+
+        sfxGain.connect(highShelf);
+        highShelf.connect(masterGain);
+        masterGain.connect(actx.destination);
+        audioInited = true;
+      }
+
+      const CHORD_ROOTS = [392, 415.3, 440, 466.16, 493.88];
+      const soundDesign = {
+        revealEmpty: { voices:[{type:'sine',freq:340}], duration:0.18, gain:0.23, lp:900, attack:0.015, release:0.14 },
+        revealNum:   { voices:[{type:'sine',freq:480}], duration:0.14, gain:0.20, lp:1200, attack:0.01, release:0.14 },
+        flag:        { voices:[{type:'triangle',freq:220}], duration:0.10, gain:0.28, lp:1000, attack:0.008, release:0.12 },
+        unflag:      { voices:[{type:'triangle',freq:160}], duration:0.10, gain:0.25, lp:900, attack:0.008, release:0.12 },
+        chord:       { dynamic:true, duration:0.18, gain:0.12, lp:1200, attack:0.012, release:0.14 },
+        win:         { voices:[{type:'sine',freq:440},{type:'sine',freq:554.37},{type:'sine',freq:659.25}], duration:0.55, gain:0.22, lp:1600, attack:0.02, release:0.45, arpeggio:0.09 },
+        lose:        { voices:[{type:'sine',freq:520},{type:'sine',freq:360},{type:'sine',freq:200}], duration:0.65, gain:0.28, lp:1000, attack:0.015, release:0.55, arpeggio:0.11 }
+      };
+
+      function buildChordVoices(cfg){
+        const root = CHORD_ROOTS[Math.floor(Math.random()*CHORD_ROOTS.length)];
+        const third = root * 1.25;
+        let voices = [
+          {type:'sine',freq:root},
+          {type:'sine',freq:third}
+        ];
+        if (Math.random()<0.30) voices = [voices[0]];
+        const detuneCentsRange = 6;
+        const detuneFactor = cents => Math.pow(2,cents/1200);
+        voices.forEach(v=>{
+          const cents = (Math.random()*2-1)*detuneCentsRange;
+          v.freq *= detuneFactor(cents);
+        });
+        const gvar = (Math.random()*0.2 - 0.1);
+        return {
+          voices,
+          duration:cfg.duration,
+          gain:Math.max(0.05, cfg.gain + gvar*cfg.gain),
+          lp:cfg.lp,
+          attack:cfg.attack,
+          release:cfg.release
+        };
+      }
+
+      function playSFX(name){
+        if (!sfxEnabled || !audioInited) return;
+        let cfg = soundDesign[name];
+        if (!cfg) return;
+        if (cfg.dynamic) cfg = buildChordVoices(cfg);
+
+        const now = actx.currentTime;
+        const {duration, attack=0.01, release=0.2} = cfg;
+        const baseGain = cfg.gain || 0.2;
+
+        (cfg.voices||[]).forEach((v,i)=>{
+          const osc = actx.createOscillator();
+          osc.type = v.type || 'sine';
+          osc.frequency.value = v.freq;
+          const g = actx.createGain();
+          const f = actx.createBiquadFilter();
+          f.type = 'lowpass';
+          f.frequency.value = cfg.lp || 1200;
+
+          const start = now + (cfg.arpeggio ? cfg.arpeggio*i : 0);
+          g.gain.setValueAtTime(0,start);
+          g.gain.linearRampToValueAtTime(baseGain, start + attack);
+          g.gain.linearRampToValueAtTime(baseGain*0.85, start + duration - release);
+          g.gain.linearRampToValueAtTime(0.0001, start + duration);
+          osc.connect(f).connect(g).connect(sfxGain);
+          osc.start(start);
+          osc.stop(start + duration + 0.03);
+        });
+      }
+
+      function toggle(){
+        sfxEnabled = !sfxEnabled;
+        const btn = document.getElementById('sfx-toggle');
+        btn.setAttribute('aria-pressed', sfxEnabled);
+        btn.textContent = 'SFX: ' + (sfxEnabled ? 'on':'off');
+        try { localStorage.setItem('ms_sfx', sfxEnabled ? '1':'0'); } catch(_){}
+        if (sfxEnabled) { initAudio(); playSFX('revealEmpty'); }
+      }
+
+      function ensureInitOnFirstBoardInteraction(boardEl){
+        boardEl.addEventListener('mousedown', ()=>{ if(!audioInited) initAudio(); }, {once:true});
+        boardEl.addEventListener('touchstart', ()=>{ if(!audioInited) initAudio(); }, {once:true, passive:true});
+      }
+
+      loadPrefs();
+      return { playSFX, toggle, ensureInitOnFirstBoardInteraction };
+    })();
+
+    /* ---------- Minesweeper ---------- */
+    (function(Audio){
+      const CONFIG = { ROWS:10, COLS:10, MINES:15 };
+      const totalCells = CONFIG.ROWS * CONFIG.COLS;
+
+      const boardEl = document.getElementById('board');
+      const minesLeftEl = document.getElementById('mines-left');
+      const msStatus = document.getElementById('ms-status');
+      const resetBtn = document.getElementById('reset');
+      const sfxToggleBtn = document.getElementById('sfx-toggle');
+
+      let grid = [];
+      let cells = [];
+      let minesLeft = CONFIG.MINES;
+      let gameOver = false;
+      let firstClick = true;
+
+      const neighborsList = Array.from({length: totalCells}, (_,i)=>{
+        const [r,c] = rc(i);
+        const list = [];
+        for (let dr=-1; dr<=1; dr++){
+          for (let dc=-1; dc<=1; dc++){
+            if (!dr && !dc) continue;
+            const rr = r+dr, cc=c+dc;
+            if (rr>=0 && rr<CONFIG.ROWS && cc>=0 && cc<CONFIG.COLS) list.push(rr*CONFIG.COLS+cc);
+          }
+        }
+        return list;
+      });
+
+      function rc(i){ return [ (i / CONFIG.COLS)|0, i % CONFIG.COLS ]; }
+      function forEachNeighbor(i, cb){ neighborsList[i].forEach(cb); }
+      function idx(r,c){ return r*CONFIG.COLS + c; }
+
+      function createEmptyGrid(){
+        grid = Array(totalCells).fill(0).map(()=>({
+          mine:false,revealed:false,flagged:false,count:0
+        }));
+        minesLeft = CONFIG.MINES;
+        gameOver=false;
+        firstClick=true;
+        msStatus.textContent='';
+        msStatus.className='small';
+        boardEl.classList.remove('won');
+        minesLeftEl.textContent = minesLeft;
+      }
+
+      function placeMinesExcluding(excludeSet){
+        let placed=0;
+        while(placed<CONFIG.MINES){
+          const r=Math.floor(Math.random()*CONFIG.ROWS);
+          const c=Math.floor(Math.random()*CONFIG.COLS);
+          const i=idx(r,c);
+          if (grid[i].mine || excludeSet.has(i)) continue;
+          grid[i].mine=true; placed++;
+        }
+      }
+
+      function computeCounts(){
+        for (let i=0;i<totalCells;i++){
+          if (grid[i].mine){ grid[i].count=-1; continue; }
+          let count=0;
+          forEachNeighbor(i, ni=>{ if (grid[ni].mine) count++; });
+          grid[i].count=count;
+        }
+      }
+
+      function makeBoardElements(){
+        boardEl.innerHTML='';
+        cells=[];
+        for (let i=0;i<totalCells;i++){
+          const cell=document.createElement('div');
+          cell.className='cell';
+          cell.dataset.i=i;
+
+          cell.addEventListener('click', ()=>{
+            if (gameOver) return;
+            const state=grid[i];
+            if (state.revealed && state.count>0) chord(i);
+            else revealCell(i);
+          });
+          cell.addEventListener('contextmenu', e=>{
+            e.preventDefault();
+            if(!gameOver) toggleFlag(i);
+          });
+
+          // Touch long‑press
+          let touchTimer=null;
+          let long=false;
+          cell.addEventListener('touchstart', e=>{
+            if(gameOver|| e.touches.length>1) return;
+            long=false;
+            touchTimer=setTimeout(()=>{
+              long=true;
+              toggleFlag(i);
+            },350);
+          }, {passive:true});
+          cell.addEventListener('touchend', ()=>{
+            if(touchTimer){ clearTimeout(touchTimer); touchTimer=null; }
+            if(!gameOver && !long) revealCell(i);
+          });
+
+          boardEl.appendChild(cell);
+          cells.push(cell);
+        }
+      }
+
+      function updateCell(i){
+        const s=grid[i];
+        const el=cells[i];
+        el.className='cell';
+        if (s.revealed) el.classList.add('revealed');
+        if (s.flagged) el.classList.add('flagged');
+        el.textContent='';
+        if (s.flagged && !s.revealed) el.textContent='🚩';
+        else if (s.revealed){
+          if (s.mine){ el.classList.add('mine'); el.textContent='💣'; }
+          else if (s.count>0){ el.textContent=s.count; el.classList.add('number-'+s.count); }
+        }
+        if (s.wrongFlag){
+          el.classList.add('wrong-flag');
+          el.textContent='✖';
+        }
+      }
+
+      function prepareMinesForFirstClick(firstIndex){
+        const [r0,c0]=rc(firstIndex);
+        const ex=new Set();
+        for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++){
+          const rr=r0+dr, cc=c0+dc;
+          if (rr>=0 && rr<CONFIG.ROWS && cc>=0 && cc<CONFIG.COLS) ex.add(idx(rr,cc));
+        }
+        placeMinesExcluding(ex);
+        computeCounts();
+      }
+
+      function revealCell(i){
+        const cell=grid[i];
+        if (cell.flagged || cell.revealed){ updateCell(i); return; }
+        if (firstClick){ firstClick=false; prepareMinesForFirstClick(i); }
+        cell.revealed=true;
+
+        if (cell.mine){
+            gameOver=true;
+            msStatus.textContent='Game over';
+            msStatus.classList.add('status-lose');
+            updateCell(i);
+            revealAllMines(i);
+            markWrongFlags();
+            Audio.playSFX('lose');
+            return;
+        }
+
+        const changed=new Set([i]);
+        let empty=false;
+        if (cell.count===0){
+          empty=true;
+          const q=[i];
+          while(q.length){
+            const cur=q.shift();
+            forEachNeighbor(cur, ni=>{
+              const n=grid[ni];
+              if (!n.revealed && !n.flagged && !n.mine){
+                n.revealed=true;
+                changed.add(ni);
+                if (n.count===0) q.push(ni);
+              }
+            });
+          }
+        }
+        changed.forEach(updateCell);
+        Audio.playSFX(empty ? 'revealEmpty' : (cell.count>0 ? 'revealNum':'revealEmpty'));
+        checkWin();
+      }
+
+      function chord(i){
+        const base=grid[i];
+        if(!base.revealed || base.count<=0) return;
+        let flaggedCount=0;
+        const hidden=[];
+        forEachNeighbor(i, ni=>{
+          if (grid[ni].flagged) flaggedCount++;
+          else if(!grid[ni].revealed) hidden.push(ni);
+        });
+        if (flaggedCount !== base.count || !hidden.length) return;
+
+        const changed=new Set();
+        for (const ni of hidden){
+          const n=grid[ni];
+          n.revealed=true;
+          changed.add(ni);
+          if (n.mine){
+            gameOver=true;
+            updateCell(ni);
+            msStatus.textContent='Game over';
+            msStatus.classList.add('status-lose');
+            revealAllMines(ni);
+            markWrongFlags();
+            Audio.playSFX('lose');
+            return;
+          }
+          if (n.count===0){
+            const q=[ni];
+            while(q.length){
+              const cur=q.shift();
+              forEachNeighbor(cur, qni=>{
+                const nn=grid[qni];
+                if(!nn.revealed && !nn.flagged && !nn.mine){
+                  nn.revealed=true;
+                  changed.add(qni);
+                  if (nn.count===0) q.push(qni);
+                }
+              });
+            }
+          }
+        }
+        if(!gameOver){
+          changed.forEach(updateCell);
+          Audio.playSFX('chord');
+          checkWin();
+        }
+      }
+
+      function toggleFlag(i){
+        const cell=grid[i];
+        if (cell.revealed) return;
+        if (firstClick) firstClick=false;
+        cell.flagged=!cell.flagged;
+        minesLeft += cell.flagged ? -1 : 1;
+        minesLeftEl.textContent=minesLeft;
+        updateCell(i);
+        Audio.playSFX(cell.flagged ? 'flag':'unflag');
+        checkWin();
+      }
+
+      function revealAllMines(triggerIndex){
+        grid.forEach((c,idx)=>{
+          if(c.mine){
+            c.revealed=true;
+            updateCell(idx);
+            if(idx===triggerIndex) cells[idx].classList.add('failed');
+          }
+        });
+      }
+
+      function markWrongFlags(){
+        grid.forEach((c,i)=>{
+          if (c.flagged && !c.mine){
+            c.wrongFlag=true;
+            updateCell(i);
+          }
+        });
+      }
+
+      function checkWin(){
+        if(gameOver) return;
+        const allRevealed=grid.every(c=>c.mine || c.revealed);
+        if (allRevealed){
+          gameOver=true;
+          msStatus.textContent='Niceee, you did it!';
+          msStatus.classList.add('status-win');
+          boardEl.classList.add('won');
+          grid.forEach((c,i)=>{
+            if (c.mine && !c.revealed){ c.revealed=true; updateCell(i); }
+          });
+          Audio.playSFX('win');
+        }
+      }
+
+      function resetGame(){
+        createEmptyGrid();
+        if(!cells.length) makeBoardElements();
+        for(let i=0;i<totalCells;i++) updateCell(i);
+        minesLeftEl.textContent=minesLeft;
+        Audio.playSFX('revealEmpty');
+      }
+
+      resetBtn.addEventListener('click', resetGame);
+      sfxToggleBtn.addEventListener('click', Audio.toggle);
+      window.addEventListener('contextmenu', e=>e.preventDefault(), {passive:false});
+      Audio.ensureInitOnFirstBoardInteraction(boardEl);
+      resetGame();
+      document.getElementById('year').textContent = new Date().getFullYear();
+    })(AudioModule);
+  </script>
 </body>
 </html>
