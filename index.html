@@ -281,13 +281,13 @@
         btn.textContent = 'SFX: ' + (sfxEnabled ? 'on':'off');
       }
 
-      function initAudio(){
+      async function initAudio(){
         if (audioInited) return;
         actx = new (window.AudioContext || window.webkitAudioContext)();
         
         // Resume audio context for Safari/iOS support
         if (actx.state === 'suspended') {
-          actx.resume();
+          await actx.resume();
         }
         
         masterGain = actx.createGain();
@@ -343,12 +343,12 @@
         };
       }
 
-      function playSFX(name){
+      async function playSFX(name){
         if (!sfxEnabled || !audioInited) return;
         
         // Ensure audio context is running (Safari/iOS requirement)
         if (actx.state === 'suspended') {
-          actx.resume();
+          await actx.resume();
         }
         
         let cfg = soundDesign[name];
@@ -379,13 +379,13 @@
         });
       }
 
-      function toggle(){
+      async function toggle(){
         sfxEnabled = !sfxEnabled;
         const btn = document.getElementById('sfx-toggle');
         btn.setAttribute('aria-pressed', sfxEnabled);
         btn.textContent = 'SFX: ' + (sfxEnabled ? 'on':'off');
         try { localStorage.setItem('ms_sfx', sfxEnabled ? '1':'0'); } catch(_){}
-        if (sfxEnabled) { initAudio(); playSFX('revealEmpty'); }
+        if (sfxEnabled) { await initAudio(); await playSFX('revealEmpty'); }
       }
 
       function ensureInitOnFirstBoardInteraction(boardEl){
