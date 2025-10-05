@@ -104,7 +104,7 @@
     .small { font-size:0.85rem; color:var(--muted); }
 
     .board {
-      display:grid; grid-template-columns:repeat(10,34px); grid-auto-rows:34px; gap:4px;
+      display:grid; grid-auto-rows:34px; gap:4px;
       background:#1a242e; padding:8px; border-radius:10px;
       box-shadow:inset 0 0 0 1px #273543, 0 0 0 1px #10161d;
       user-select:none; touch-action:manipulation; position:relative; margin:0 auto;
@@ -160,7 +160,7 @@
     footer { margin-top:32px; text-align:center; color:#9ba7b4; font-size:0.75rem; }
 
     @media (max-width:620px) {
-      .board { grid-template-columns:repeat(10,30px); grid-auto-rows:30px; gap:3px; padding:6px; }
+      .board { grid-auto-rows:30px; gap:3px; padding:6px; }
       .cell { width:30px; height:30px; font-size:14px; }
       .avatar { width:80px; height:80px; font-size:44px; }
     }
@@ -283,6 +283,12 @@
       function initAudio(){
         if (audioInited) return;
         actx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Resume audio context for Safari/iOS support
+        if (actx.state === 'suspended') {
+          actx.resume();
+        }
+        
         masterGain = actx.createGain();
         masterGain.gain.value = 0.9;
 
@@ -338,6 +344,12 @@
 
       function playSFX(name){
         if (!sfxEnabled || !audioInited) return;
+        
+        // Ensure audio context is running (Safari/iOS requirement)
+        if (actx.state === 'suspended') {
+          actx.resume();
+        }
+        
         let cfg = soundDesign[name];
         if (!cfg) return;
         if (cfg.dynamic) cfg = buildChordVoices(cfg);
@@ -386,8 +398,37 @@
 
     /* ---------- Minesweeper ---------- */
     (function(Audio){
-      const CONFIG = { ROWS:10, COLS:10, MINES:15 };
-      const totalCells = CONFIG.ROWS * CONFIG.COLS;
+      // Calculate responsive board size based on screen dimensions
+      function calculateBoardConfig() {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        
+        // Base cell size + gap
+        const cellSize = vw <= 620 ? 30 : 34;
+        const gap = vw <= 620 ? 3 : 4;
+        const padding = vw <= 620 ? 6 : 8;
+        
+        // Available space (accounting for page margins and padding)
+        const availableWidth = Math.min(vw - 100, 960); // Max content width is 960px
+        const availableHeight = vh * 0.5; // Use up to 50% of viewport height
+        
+        // Calculate max columns and rows that fit
+        const maxCols = Math.floor((availableWidth - padding * 2 + gap) / (cellSize + gap));
+        const maxRows = Math.floor((availableHeight - padding * 2 + gap) / (cellSize + gap));
+        
+        // Set sensible limits
+        const cols = Math.max(8, Math.min(maxCols, 16));
+        const rows = Math.max(8, Math.min(maxRows, 16));
+        
+        // Calculate mine density (aim for ~15-20% mine density)
+        const totalCells = rows * cols;
+        const mines = Math.max(10, Math.floor(totalCells * 0.16));
+        
+        return { ROWS: rows, COLS: cols, MINES: mines };
+      }
+      
+      let CONFIG = calculateBoardConfig();
+      let totalCells = CONFIG.ROWS * CONFIG.COLS;
 
       const boardEl = document.getElementById('board');
       const minesLeftEl = document.getElementById('mines-left');
@@ -401,18 +442,24 @@
       let gameOver = false;
       let firstClick = true;
 
-      const neighborsList = Array.from({length: totalCells}, (_,i)=>{
-        const [r,c] = rc(i);
-        const list = [];
-        for (let dr=-1; dr<=1; dr++){
-          for (let dc=-1; dc<=1; dc++){
-            if (!dr && !dc) continue;
-            const rr = r+dr, cc=c+dc;
-            if (rr>=0 && rr<CONFIG.ROWS && cc>=0 && cc<CONFIG.COLS) list.push(rr*CONFIG.COLS+cc);
+      let neighborsList = [];
+      
+      function buildNeighborsList() {
+        neighborsList = Array.from({length: totalCells}, (_,i)=>{
+          const [r,c] = rc(i);
+          const list = [];
+          for (let dr=-1; dr<=1; dr++){
+            for (let dc=-1; dc<=1; dc++){
+              if (!dr && !dc) continue;
+              const rr = r+dr, cc=c+dc;
+              if (rr>=0 && rr<CONFIG.ROWS && cc>=0 && cc<CONFIG.COLS) list.push(rr*CONFIG.COLS+cc);
+            }
           }
-        }
-        return list;
-      });
+          return list;
+        });
+      }
+      
+      buildNeighborsList();
 
       function rc(i){ return [ (i / CONFIG.COLS)|0, i % CONFIG.COLS ]; }
       function forEachNeighbor(i, cb){ neighborsList[i].forEach(cb); }
@@ -457,6 +504,12 @@
       function makeBoardElements(){
         boardEl.innerHTML='';
         cells=[];
+        
+        // Set dynamic grid columns based on CONFIG
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const cellSize = vw <= 620 ? '30px' : '34px';
+        boardEl.style.gridTemplateColumns = `repeat(${CONFIG.COLS}, ${cellSize})`;
+        
         for (let i=0;i<totalCells;i++){
           const cell=document.createElement('div');
           cell.className='cell';
@@ -518,6 +571,7 @@
       function updateCell(i){
         const s=grid[i];
         const el=cells[i];
+        if (!el || !s) return; // Safety check for resize operations
         el.className='cell';
         if (s.revealed) el.classList.add('revealed');
         if (s.flagged) el.classList.add('flagged');
@@ -687,6 +741,23 @@
       resetBtn.addEventListener('click', resetGame);
       sfxToggleBtn.addEventListener('click', Audio.toggle);
       window.addEventListener('contextmenu', e=>e.preventDefault(), {passive:false});
+      
+      // Handle window resize to adjust board size
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const newConfig = calculateBoardConfig();
+          // Only reset if board size actually changed
+          if (newConfig.ROWS !== CONFIG.ROWS || newConfig.COLS !== CONFIG.COLS) {
+            CONFIG = newConfig;
+            totalCells = CONFIG.ROWS * CONFIG.COLS;
+            buildNeighborsList();
+            resetGame();
+          }
+        }, 250);
+      });
+      
       Audio.ensureInitOnFirstBoardInteraction(boardEl);
       resetGame();
       document.getElementById('year').textContent = new Date().getFullYear();
