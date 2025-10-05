@@ -104,10 +104,11 @@
     .small { font-size:0.85rem; color:var(--muted); }
 
     .board {
-      display:grid; grid-template-columns:repeat(10,34px); grid-auto-rows:34px; gap:4px;
+      display:grid; grid-auto-rows:34px; gap:4px;
       background:#1a242e; padding:8px; border-radius:10px;
       box-shadow:inset 0 0 0 1px #273543, 0 0 0 1px #10161d;
       user-select:none; touch-action:manipulation; position:relative; margin:0 auto;
+      max-width:100%;
     }
     .board.won { animation:boardGlow 1.6s ease-out 1; }
     @keyframes boardGlow {
@@ -160,7 +161,7 @@
     footer { margin-top:32px; text-align:center; color:#9ba7b4; font-size:0.75rem; }
 
     @media (max-width:620px) {
-      .board { grid-template-columns:repeat(10,30px); grid-auto-rows:30px; gap:3px; padding:6px; }
+      .board { grid-auto-rows:30px; gap:3px; padding:6px; }
       .cell { width:30px; height:30px; font-size:14px; }
       .avatar { width:80px; height:80px; font-size:44px; }
     }
@@ -398,8 +399,67 @@
 
     /* ---------- Minesweeper ---------- */
     (function(Audio){
-      const CONFIG = { ROWS:10, COLS:10, MINES:15 };
-      const totalCells = CONFIG.ROWS * CONFIG.COLS;
+      // Calculate responsive board dimensions that keep ~100 cells
+      function calculateBoardDimensions() {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        
+        // Determine cell size based on viewport
+        const cellSize = vw <= 620 ? 30 : 34;
+        const gap = vw <= 620 ? 3 : 4;
+        const padding = vw <= 620 ? 6 : 8;
+        
+        // Calculate available space more conservatively
+        // Account for: page padding (24px each side), card padding (20px each side), some margin
+        const pagePadding = 48; // 24px on each side
+        const cardPadding = 40; // 20px on each side
+        const safetyMargin = 20; // Extra margin to ensure it fits comfortably
+        const availableWidth = vw - pagePadding - cardPadding - safetyMargin;
+        const availableHeight = vh * 0.5; // Use up to 50% of viewport height for mobile
+        
+        // Calculate max columns and rows that fit
+        const boardWidthPerCol = cellSize + gap;
+        const boardHeightPerRow = cellSize + gap;
+        const maxCols = Math.floor((availableWidth - padding * 2) / boardWidthPerCol);
+        const maxRows = Math.floor((availableHeight - padding * 2) / boardHeightPerRow);
+        
+        // Target ~100 cells, find best fit that keeps board in bounds
+        const targetCells = 100;
+        
+        // Try to keep it square first (10x10)
+        if (maxCols >= 10 && maxRows >= 10) {
+          return { rows: 10, cols: 10, mines: 15 };
+        }
+        
+        // If can't fit square, find best rectangular configuration
+        // Prioritize fewer columns (narrower board) when width is limited
+        let bestRows = maxRows;
+        let bestCols = maxCols;
+        let bestDiff = Math.abs((bestRows * bestCols) - targetCells);
+        
+        // Try all combinations that fit within bounds
+        for (let cols = Math.min(maxCols, 10); cols >= 5; cols--) {
+          for (let rows = 5; rows <= maxRows; rows++) {
+            const cells = rows * cols;
+            const diff = Math.abs(cells - targetCells);
+            // Prefer configurations closer to target, or with fewer columns if tied
+            if (diff < bestDiff || (diff === bestDiff && cols < bestCols)) {
+              bestRows = rows;
+              bestCols = cols;
+              bestDiff = diff;
+            }
+          }
+        }
+        
+        const totalCells = bestRows * bestCols;
+        const mines = Math.max(10, Math.round(totalCells * 0.15));
+        
+        return { rows: bestRows, cols: bestCols, mines };
+      }
+      
+      let boardConfig = calculateBoardDimensions();
+      let CONFIG = { ROWS: boardConfig.rows, COLS: boardConfig.cols, MINES: boardConfig.mines };
+      let totalCells = CONFIG.ROWS * CONFIG.COLS;
 
       const boardEl = document.getElementById('board');
       const minesLeftEl = document.getElementById('mines-left');
@@ -413,18 +473,24 @@
       let gameOver = false;
       let firstClick = true;
 
-      const neighborsList = Array.from({length: totalCells}, (_,i)=>{
-        const [r,c] = rc(i);
-        const list = [];
-        for (let dr=-1; dr<=1; dr++){
-          for (let dc=-1; dc<=1; dc++){
-            if (!dr && !dc) continue;
-            const rr = r+dr, cc=c+dc;
-            if (rr>=0 && rr<CONFIG.ROWS && cc>=0 && cc<CONFIG.COLS) list.push(rr*CONFIG.COLS+cc);
+      let neighborsList = [];
+      
+      function buildNeighborsList() {
+        neighborsList = Array.from({length: totalCells}, (_,i)=>{
+          const [r,c] = rc(i);
+          const list = [];
+          for (let dr=-1; dr<=1; dr++){
+            for (let dc=-1; dc<=1; dc++){
+              if (!dr && !dc) continue;
+              const rr = r+dr, cc=c+dc;
+              if (rr>=0 && rr<CONFIG.ROWS && cc>=0 && cc<CONFIG.COLS) list.push(rr*CONFIG.COLS+cc);
+            }
           }
-        }
-        return list;
-      });
+          return list;
+        });
+      }
+      
+      buildNeighborsList();
 
       function rc(i){ return [ (i / CONFIG.COLS)|0, i % CONFIG.COLS ]; }
       function forEachNeighbor(i, cb){ neighborsList[i].forEach(cb); }
@@ -469,6 +535,12 @@
       function makeBoardElements(){
         boardEl.innerHTML='';
         cells=[];
+        
+        // Set dynamic grid columns and cell size based on viewport
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const cellSize = vw <= 620 ? '30px' : '34px';
+        boardEl.style.gridTemplateColumns = `repeat(${CONFIG.COLS}, ${cellSize})`;
+        
         for (let i=0;i<totalCells;i++){
           const cell=document.createElement('div');
           cell.className='cell';
@@ -530,6 +602,7 @@
       function updateCell(i){
         const s=grid[i];
         const el=cells[i];
+        if (!el || !s) return; // Safety check for dynamic board resizing
         el.className='cell';
         if (s.revealed) el.classList.add('revealed');
         if (s.flagged) el.classList.add('flagged');
@@ -699,6 +772,25 @@
       resetBtn.addEventListener('click', resetGame);
       sfxToggleBtn.addEventListener('click', Audio.toggle);
       window.addEventListener('contextmenu', e=>e.preventDefault(), {passive:false});
+      
+      // Handle window resize to adjust board dimensions
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const newConfig = calculateBoardDimensions();
+          // Only reset if board dimensions actually changed
+          if (newConfig.rows !== CONFIG.ROWS || newConfig.cols !== CONFIG.COLS) {
+            CONFIG.ROWS = newConfig.rows;
+            CONFIG.COLS = newConfig.cols;
+            CONFIG.MINES = newConfig.mines;
+            totalCells = CONFIG.ROWS * CONFIG.COLS;
+            buildNeighborsList();
+            resetGame();
+          }
+        }, 250);
+      });
+      
       Audio.ensureInitOnFirstBoardInteraction(boardEl);
       resetGame();
       document.getElementById('year').textContent = new Date().getFullYear();
