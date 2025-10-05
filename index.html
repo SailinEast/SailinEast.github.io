@@ -634,7 +634,6 @@
       function toggleFlag(i){
         const cell=grid[i];
         if (cell.revealed) return;
-        if (firstClick) firstClick=false;
         cell.flagged=!cell.flagged;
         minesLeft += cell.flagged ? -1 : 1;
         minesLeftEl.textContent=minesLeft;
