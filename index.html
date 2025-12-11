@@ -95,6 +95,12 @@
     .panel p { margin:4px 0 10px; font-size:0.9rem; color:var(--muted); }
     .hobby-list { margin:0; padding-left:20px; line-height:1.5; }
     .hobby-list li { margin:2px 0; }
+    .contact-list { list-style:none; margin:10px 0 0; padding:0; display:grid; gap:10px; }
+    .contact-list li { padding:12px 14px; border-radius:12px; background:var(--panel-bg); border:1px solid var(--panel-border); }
+    .contact-label { font-size:0.85rem; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; margin-bottom:4px; }
+    .contact-value { font-size:1rem; word-break:break-word; }
+    .contact-value a { color:var(--accent); text-decoration:none; }
+    .contact-value a:hover { text-decoration:underline; }
 
     .ms-wrapper {
       display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center;
@@ -202,6 +208,25 @@
           does point it well. I might not be too social person, I mean not at all, but I do like talking with my online friends and having some general chit-chats in real life too. Also I spend most of my 
           time playing Roblox. By the way, I like playing Minesweeper, so as a commemoration to it, you can play it if you scroll down.
         </p>
+      </section>
+
+      <section class="card" aria-labelledby="contact-heading">
+        <h2 id="contact-heading" style="margin:0 0 10px;font-size:1.25rem;">Contacts</h2>
+        <p class="small">Quick links to reach me out</p>
+        <ul class="contact-list" aria-label="Contact links">
+          <li>
+            <div class="contact-label">Discord</div>
+            <div class="contact-value" id="contact-discord">
+              <a href="https://discord.com/users/480973068442009600" rel="noreferrer noopener">@sailineast</a>
+            </div>
+          </li>
+          <li>
+            <div class="contact-label">Roblox</div>
+            <div class="contact-value" id="contact-roblox">
+              <a href="https://www.roblox.com/users/0/profile" rel="noreferrer noopener">SailinEast</a>
+            </div>
+          </li>
+        </ul>
       </section>
 
       <section class="card" aria-labelledby="puzzle-heading">
